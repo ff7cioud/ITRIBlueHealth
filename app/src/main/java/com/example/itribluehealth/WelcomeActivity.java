@@ -14,7 +14,7 @@ public class WelcomeActivity extends Activity{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.fragment_welcome);
         //檢查藍芽
-        mHandler.sendEmptyMessageDelayed(GOTO_MAIN_ACTIVITY, 2000); //2秒跳轉
+        mHandler.sendEmptyMessageDelayed(GOTO_MAIN_ACTIVITY, 3000); //2秒跳轉
     }
     private static final int GOTO_MAIN_ACTIVITY = 0;
     private Handler mHandler = new Handler() {
