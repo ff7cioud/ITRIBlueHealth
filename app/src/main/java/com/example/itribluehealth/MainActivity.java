@@ -82,9 +82,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
-
-
     public void bt3(View view) {
         String str= "";
         blueadapter.cancelDiscovery();//關閉掃描
