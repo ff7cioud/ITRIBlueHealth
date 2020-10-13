@@ -1,4 +1,8 @@
 package com.example.itribluehealth;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -22,18 +26,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String TAG = MainActivity.class.getSimpleName()+"My";
-    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-    private static final int REQUEST_FINE_LOCATION_PERMISSION = 102;
-    private static final int REQUEST_ENABLE_BT = 2;
-    private boolean isScanning = false;
 
-
+    BluetoothAdapter blueadapter = BluetoothAdapter.getDefaultAdapter();
+    ArrayList AL = new ArrayList();
     private SQL SQL;
 
     private TextView output;
@@ -54,48 +54,41 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navView, navController);
 
 
-
-        SQL = new SQL(this); //要使用都需要呼叫
         output = (TextView) findViewById(R.id.text1);
-
-      /**確認手機版本是否在API18以上，否則退出程式*/
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
-            /**確認是否已開啟取得手機位置功能以及權限*/
-            int hasGone = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION);
-            if (hasGone != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                        REQUEST_FINE_LOCATION_PERMISSION);
-            }
-            /**確認手機是否支援藍牙BLE*/
-            if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
-                Toast.makeText(this,"Not support Bluetooth", Toast.LENGTH_SHORT).show();
-                finish();
-            }
-            /**開啟藍芽適配器*/
-            if(!mBluetoothAdapter.isEnabled()){
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent,REQUEST_ENABLE_BT);
-            }
-        }else finish();
-
     }
-
-
-    public void bt1(View view) throws Exception {
-        //SQL.InserChart("text","19880712","男");
-        //SQL.DeleteDatatoDay(0);
-        //List<String> stringList = SQL.SelectChart();
-        List<String> stringList = SQL.SelectBlueData(0);
-        if (stringList.size() >1)
-          output.setText(stringList.get(1).toString());
-        else
-            output.setText("無資料");
-        SQL.DeleteDatatoDay(0);
-    }
-
 
     public void bt2(View view) {
+             AL.clear();
+            if (blueadapter.isDiscovering()) {
+                //判斷藍牙是否正在掃描，如果是調用取消掃描方法；如果不是，則開始掃描
+                blueadapter.cancelDiscovery();
+            } else
+                blueadapter.startDiscovery();
+        IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);//注冊廣播接收信號
+        registerReceiver(bluetoothReceiver, intentFilter);//用BroadcastReceiver 來取得結果
+    }
 
+    private final BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+               AL.add(device.getName()+":"+device.getAddress());
+
+
+            }
+        }
+    };
+
+    public void bt3(View view) {
+        String str= "";
+        blueadapter.cancelDiscovery();//關閉掃描
+        for (int i = 0 ; i < AL.size();i++){
+            str += AL.get(i)+"\n";
+
+        }
+        output.setText(str);
     }
 }
