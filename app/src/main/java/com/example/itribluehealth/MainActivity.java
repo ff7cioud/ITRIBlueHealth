@@ -21,22 +21,30 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.ListView;
 import android.widget.Toast;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class MainActivity extends AppCompatActivity {
 
-
+    private ListView lv;
     BluetoothAdapter blueadapter = BluetoothAdapter.getDefaultAdapter();
     ArrayList AL = new ArrayList();
+
     private SQL SQL;
 
     private TextView output;
+
+    public MainActivity() {
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,19 +61,21 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
+        lv = (ListView)findViewById(R.id.listview1);
 
-        output = (TextView) findViewById(R.id.text1);
     }
 
     public void bt2(View view) {
-             AL.clear();
-            if (blueadapter.isDiscovering()) {
-                //判斷藍牙是否正在掃描，如果是調用取消掃描方法；如果不是，則開始掃描
-                blueadapter.cancelDiscovery();
-            } else
-                blueadapter.startDiscovery();
+        AL.clear();
+        if (blueadapter.isDiscovering()) {
+            //判斷藍牙是否正在掃描，如果是調用取消掃描方法；如果不是，則開始掃描
+            blueadapter.cancelDiscovery();
+        } else
+            blueadapter.startDiscovery();
         IntentFilter intentFilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);//注冊廣播接收信號
         registerReceiver(bluetoothReceiver, intentFilter);//用BroadcastReceiver 來取得結果
+        // output.setText("");
+
     }
 
     private final BroadcastReceiver bluetoothReceiver = new BroadcastReceiver() {
@@ -75,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
 
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-               AL.add(device.getName()+":"+device.getAddress());
+                AL.add(device.getName()+":"+device.getAddress());
 
 
             }
@@ -89,6 +99,10 @@ public class MainActivity extends AppCompatActivity {
             str += AL.get(i)+"\n";
 
         }
-        output.setText(str);
+        // output.setText(str);
+        final ArrayAdapter adapter = new ArrayAdapter
+                (this,android.R.layout.simple_list_item_1, AL);
+        lv.setAdapter(adapter);
+
     }
 }
